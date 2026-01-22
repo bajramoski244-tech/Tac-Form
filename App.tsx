@@ -26,34 +26,6 @@ const App: React.FC = () => {
     }
   };
 
-  // News Card Component
-  const NewsCard = ({ title, category, description, date }: { title: string, category: string, description: string, date: string }) => {
-    return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow duration-300">
-        <div className="h-48 bg-neutral-light relative group">
-          {/* Placeholder Image Pattern */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
-            <div className="text-brand-red/10 font-serif text-6xl font-bold group-hover:scale-110 transition-transform duration-500 select-none">TAÇ</div>
-          </div>
-          <div className="absolute top-4 left-4">
-            <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-brand-red uppercase tracking-wider shadow-sm">
-              {category}
-            </span>
-          </div>
-        </div>
-        <div className="p-6 flex-1 flex flex-col">
-          <div className="text-gray-400 text-xs font-medium mb-3">{date}</div>
-          <h3 className="text-xl font-serif font-bold text-gray-900 mb-3 leading-snug">
-            {title}
-          </h3>
-          <p className="text-gray-500 text-sm leading-relaxed flex-1">
-            {description}
-          </p>
-        </div>
-      </div>
-    );
-  };
-
   // Header Component
   const Header = () => (
     <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100">
@@ -230,39 +202,6 @@ const App: React.FC = () => {
                   <h3 className="text-lg font-serif font-bold mb-2">Стручна помош</h3>
                   <p className="text-gray-500 text-sm">Нашите дизајнери ќе ви помогнат да го направите вистинскиот избор.</p>
                </div>
-            </div>
-          </section>
-
-          {/* News & Inspiration Section */}
-          <section className="px-4 py-20 bg-white border-t border-gray-100">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-4">Совети и Инспирација</h2>
-                <p className="text-gray-600 max-w-2xl mx-auto">
-                  Најнови трендови за уредување на домот и корисни совети за вашите завеси.
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <NewsCard 
-                  category="Трендови"
-                  date="12 Март, 2024"
-                  title="Боите на пролетта во вашиот дом"
-                  description="Откријте кои пастелни нијанси се најпопуларни оваа сезона и како да ги комбинирате со мебелот."
-                />
-                <NewsCard 
-                  category="Совети"
-                  date="05 Март, 2024"
-                  title="Водич за одржување на завеси"
-                  description="Едноставни трикови за вашите завеси да изгледаат како нови и по неколку години користење."
-                />
-                <NewsCard 
-                  category="Ентериер"
-                  date="28 Февруари, 2024"
-                  title="Blackout завеси за мирен сон"
-                  description="Зошто blackout завесите се најдобриот избор за спалната соба и како влијаат на квалитетот на спиењето."
-                />
-              </div>
             </div>
           </section>
 
