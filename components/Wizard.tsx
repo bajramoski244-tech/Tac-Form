@@ -55,6 +55,21 @@ export const Wizard: React.FC<WizardProps> = ({ onCancel }) => {
     setData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val.length <= 15) {
+      updateField('name', val);
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    // Regex: allow only numbers and +
+    if ((val === '' || /^[0-9+]+$/.test(val)) && val.length <= 12) {
+      updateField('phone', val);
+    }
+  };
+
   const toggleRoom = (room: RoomOption) => {
     setData(prev => {
       const exists = prev.rooms.includes(room);
@@ -121,7 +136,7 @@ export const Wizard: React.FC<WizardProps> = ({ onCancel }) => {
         <p className="text-lg text-gray-600 mb-6 leading-relaxed">
           Според вашите одговори, нашиот тим ќе ве контактира за да ви ги препорача најсоодветните завеси за вашиот дом.
         </p>
-        <div className="bg-brand-light border border-brand-red/10 rounded-xl p-4 inline-block">
+        <div className="bg-white border border-brand-red/20 rounded-xl p-4 inline-block shadow-sm">
           <p className="text-brand-dark font-medium">
             {isQualified 
               ? "Очекувајте повик наскоро." 
@@ -238,7 +253,7 @@ export const Wizard: React.FC<WizardProps> = ({ onCancel }) => {
 
           {step === 4 && (
             <div className="animate-in slide-in-from-right-8 duration-300">
-              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Колкав буџет планирате по м²?</h2>
+              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Колкав буџет планирате по м² за завеса?</h2>
               <div className="space-y-3">
                 {BUDGET_OPTIONS.map((opt) => (
                   <button
@@ -309,7 +324,7 @@ export const Wizard: React.FC<WizardProps> = ({ onCancel }) => {
                   value={data.city}
                   onChange={(e) => updateField('city', e.target.value)}
                   placeholder="Пр. Скопје, Битола..."
-                  className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-brand-red focus:outline-none transition-colors"
+                  className="w-full p-4 text-lg border-2 border-gray-200 rounded-xl focus:border-brand-red focus:outline-none transition-colors bg-white text-gray-900 placeholder-gray-400"
                   autoFocus
                 />
               </div>
@@ -325,8 +340,8 @@ export const Wizard: React.FC<WizardProps> = ({ onCancel }) => {
                   <input 
                     type="text" 
                     value={data.name}
-                    onChange={(e) => updateField('name', e.target.value)}
-                    className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-brand-red focus:outline-none transition-colors"
+                    onChange={handleNameChange}
+                    className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-brand-red focus:outline-none transition-colors bg-white text-gray-900 placeholder-gray-400"
                     placeholder="Вашето име"
                   />
                 </div>
@@ -335,8 +350,8 @@ export const Wizard: React.FC<WizardProps> = ({ onCancel }) => {
                   <input 
                     type="tel" 
                     value={data.phone}
-                    onChange={(e) => updateField('phone', e.target.value)}
-                    className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-brand-red focus:outline-none transition-colors"
+                    onChange={handlePhoneChange}
+                    className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-brand-red focus:outline-none transition-colors bg-white text-gray-900 placeholder-gray-400"
                     placeholder="07x xxx xxx"
                   />
                 </div>

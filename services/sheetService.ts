@@ -2,6 +2,48 @@ import { LeadFormData, SubmittedLead, BudgetOption } from '../types';
 
 const STORAGE_KEY = 'tac_leads_db';
 
+// --- GOOGLE SHEETS INTEGRATION INSTRUCTIONS ---
+// 1. Go to your Google Sheet: https://docs.google.com/spreadsheets/d/1xausDfRQQZU9oUQWJYAA6v75K7P19bm3oNvuCeHmZL8/edit?usp=sharing
+// 2. Click "Extensions" > "Apps Script"
+// 3. Paste the following code into the script editor (Code.gs):
+/*
+function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    var data = JSON.parse(e.postData.contents);
+    var timestamp = new Date().toLocaleString("mk-MK");
+    
+    sheet.appendRow([
+      timestamp,
+      data.rooms.join(", "),
+      data.goal,
+      data.quality,
+      data.budget,
+      data.service,
+      data.urgency,
+      data.city,
+      data.name,
+      data.phone,
+      data.qualified ? "YES" : "NO",
+      data.notes
+    ]);
+    
+    return ContentService.createTextOutput(JSON.stringify({"result":"success"})).setMimeType(ContentService.MimeType.JSON);
+  } catch(e) {
+    return ContentService.createTextOutput(JSON.stringify({"result":"error", "error": e})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+*/
+// 4. Click "Deploy" > "New deployment"
+// 5. Select type: "Web app"
+// 6. Set "Execute as": "Me"
+// 7. Set "Who has access": "Anyone" (This is crucial for the form to work without login)
+// 8. Click "Deploy" and Copy the "Web app URL"
+// 9. Paste the URL into the variable below:
+
+export const GOOGLE_SCRIPT_URL = ''; // e.g., 'https://script.google.com/macros/s/AKfycbx.../exec'
+export const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1xausDfRQQZU9oUQWJYAA6v75K7P19bm3oNvuCeHmZL8/edit?usp=sharing';
+
 /**
  * Determines if a lead is qualified based on the budget.
  * Rule: 150-250 den is NOT qualified.
@@ -12,13 +54,9 @@ export const checkQualification = (budget: BudgetOption | ''): boolean => {
 };
 
 /**
- * Simulates saving to Google Sheets by saving to LocalStorage.
- * In a real Next.js app, this would be a fetch POST to an API route.
+ * Saves the lead to LocalStorage AND (if configured) sends it to Google Sheets via Apps Script.
  */
 export const saveLead = async (data: LeadFormData, notes: string): Promise<SubmittedLead> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-
   const qualified = checkQualification(data.budget);
   
   const newLead: SubmittedLead = {
@@ -29,10 +67,31 @@ export const saveLead = async (data: LeadFormData, notes: string): Promise<Submi
     notes
   };
 
-  // Save to "Database" (LocalStorage for demo)
+  // 1. Save to "Database" (LocalStorage)
   const existing = getLeads();
   const updated = [newLead, ...existing];
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+  // 2. Send to Google Sheets (if Script URL is provided)
+  if (GOOGLE_SCRIPT_URL) {
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Important for Google Apps Script to work from browser
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newLead)
+      });
+      console.log('Sent to Google Sheets');
+    } catch (e) {
+      console.error('Failed to send to sheet', e);
+    }
+  } else {
+    // Simulate network delay if no script url
+    await new Promise(resolve => setTimeout(resolve, 800));
+    console.log(`[Mock Backend] Lead saved locally. Add GOOGLE_SCRIPT_URL to enable sheets integration.`);
+  }
 
   return newLead;
 };

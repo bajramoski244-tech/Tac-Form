@@ -30,31 +30,37 @@ const App: React.FC = () => {
   const Header = () => (
     <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-center">
-        {/* Logo Placeholder with Upload Feature */}
-        <div className="relative group flex items-center gap-3">
-          <div 
-            onClick={() => setView('LANDING')}
-            className="cursor-pointer"
-          >
-            {logo ? (
-              <img src={logo} alt="TAÇ" className="h-10 w-auto object-contain" />
-            ) : (
-              <div className="text-2xl font-serif font-bold text-brand-red tracking-tight">
-                TAÇ
-              </div>
-            )}
+        {/* 
+            Only show the header logo if:
+            1. We are NOT on the landing page (Wizard/Admin need branding), OR
+            2. There is no logo uploaded yet (we need the text placeholder so they can find where to upload)
+        */}
+        {(view !== 'LANDING' || !logo) && (
+          <div className="relative group flex items-center gap-3">
+            <div 
+              onClick={() => setView('LANDING')}
+              className="cursor-pointer"
+            >
+              {logo ? (
+                <img src={logo} alt="TAÇ" className="h-8 w-auto object-contain" />
+              ) : (
+                <div className="text-2xl font-serif font-bold text-brand-red tracking-tight">
+                  TAÇ
+                </div>
+              )}
+            </div>
+            
+            <label className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-2 hover:bg-gray-100 rounded-full" title="Upload Logo">
+              <Upload className="w-4 h-4 text-gray-400" />
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleLogoUpload} 
+                className="hidden" 
+              />
+            </label>
           </div>
-          
-          <label className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-2 hover:bg-gray-100 rounded-full" title="Upload Logo">
-            <Upload className="w-4 h-4 text-gray-400" />
-            <input 
-              type="file" 
-              accept="image/*" 
-              onChange={handleLogoUpload} 
-              className="hidden" 
-            />
-          </label>
-        </div>
+        )}
       </div>
     </nav>
   );
@@ -64,9 +70,19 @@ const App: React.FC = () => {
     <footer id="contact" className="bg-neutral-dark text-white pt-16 pb-8">
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
         <div>
-          <h3 className="text-2xl font-serif font-bold mb-6 text-white">TAÇ</h3>
+          <div className="mb-6">
+            {logo ? (
+              <img 
+                src={logo} 
+                alt="TAÇ" 
+                className="h-10 w-auto object-contain" 
+              />
+            ) : (
+              <h3 className="text-2xl font-serif font-bold text-white">TAÇ</h3>
+            )}
+          </div>
           <p className="text-gray-400 text-sm leading-relaxed mb-6">
-            Вашиот дом заслужува најдобар квалитет. Премиум завеси и текстил со традиција на квалитет и елеганција.
+            Квалитетни завеси до вашата врата за 5 дена со прецизна мера – гарантирано.
           </p>
           <div className="flex gap-4">
             <a 
@@ -130,6 +146,23 @@ const App: React.FC = () => {
           
           {/* Hero Section */}
           <section className="px-4 py-12 md:py-20 max-w-4xl mx-auto text-center">
+            {logo && (
+              <div className="flex justify-center mb-6 relative group">
+                 {/* Hero Logo - Smaller Size */}
+                 <img src={logo} alt="TAÇ" className="h-12 md:h-16 w-auto object-contain" />
+                 
+                 {/* Upload Trigger in Hero (since we hid the header one) */}
+                 <label className="absolute -right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-2 hover:bg-gray-100 rounded-full bg-white shadow-sm" title="Change Logo">
+                    <Upload className="w-4 h-4 text-gray-400" />
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleLogoUpload} 
+                      className="hidden" 
+                    />
+                 </label>
+              </div>
+            )}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gray-900 leading-tight mb-6">
               Откријте какви завеси му требаат на вашиот дом
             </h1>
