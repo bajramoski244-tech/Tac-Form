@@ -41,8 +41,10 @@ function doPost(e) {
 // 8. Click "Deploy" and Copy the "Web app URL"
 // 9. Paste the URL into the variable below:
 
-export const GOOGLE_SCRIPT_URL = ''; // e.g., 'https://script.google.com/macros/s/AKfycbx.../exec'
-export const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1xausDfRQQZU9oUQWJYAA6v75K7P19bm3oNvuCeHmZL8/edit?usp=sharing';
+export const GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbw.../exec";
+
+
 
 /**
  * Determines if a lead is qualified based on the budget.
@@ -56,9 +58,13 @@ export const checkQualification = (budget: BudgetOption | ''): boolean => {
 /**
  * Saves the lead to LocalStorage AND (if configured) sends it to Google Sheets via Apps Script.
  */
-export const saveLead = async (data: LeadFormData, notes: string): Promise<SubmittedLead> => {
+export const saveLead = async (
+  data: LeadFormData,
+  notes: string
+): Promise<SubmittedLead> => {
+
   const qualified = checkQualification(data.budget);
-  
+
   const newLead: SubmittedLead = {
     ...data,
     id: crypto.randomUUID(),
@@ -67,34 +73,34 @@ export const saveLead = async (data: LeadFormData, notes: string): Promise<Submi
     notes
   };
 
-  // 1. Save to "Database" (LocalStorage)
-  const existing = getLeads();
-  const updated = [newLead, ...existing];
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-
-  // 2. Send to Google Sheets (if Script URL is provided)
   if (GOOGLE_SCRIPT_URL) {
     try {
       await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors', // Important for Google Apps Script to work from browser
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newLead)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rooms: newLead.rooms,        // array
+          goal: newLead.goal,
+          quality: newLead.quality,
+          budget: newLead.budget,
+          service: newLead.service,
+          urgency: newLead.urgency,
+          city: newLead.city,
+          name: newLead.name,
+          phone: newLead.phone,
+          qualified: newLead.qualified, // boolean
+          notes: newLead.notes || ""
+        })
       });
-      console.log('Sent to Google Sheets');
-    } catch (e) {
-      console.error('Failed to send to sheet', e);
+    } catch (err) {
+      console.error("Google Sheets send failed:", err);
     }
-  } else {
-    // Simulate network delay if no script url
-    await new Promise(resolve => setTimeout(resolve, 800));
-    console.log(`[Mock Backend] Lead saved locally. Add GOOGLE_SCRIPT_URL to enable sheets integration.`);
   }
 
+  // ✅ VERY IMPORTANT
   return newLead;
 };
+
 
 export const getLeads = (): SubmittedLead[] => {
   const data = localStorage.getItem(STORAGE_KEY);

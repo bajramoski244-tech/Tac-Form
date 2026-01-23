@@ -5,6 +5,29 @@ import Admin from './components/Admin';
 
 type ViewState = 'LANDING' | 'WIZARD' | 'ADMIN';
 
+const GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbwYdpeVXW-YgKFgoq4aKiGKhK4knkPM0FiGGYfxVpZcvj04Knt64JNjJ-KfmeyWRe7GQA/exec";
+
+async function sendToGoogleSheet(payload: any) {
+  const response = await fetch(GOOGLE_SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await response.text();
+
+  try {
+    const data = JSON.parse(text);
+    if (data.ok !== true) {
+      throw new Error("Google Sheet error");
+    }
+  } catch {
+    throw new Error("Invalid response from Google Sheet");
+  }
+}
+
+
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('LANDING');
   const [logo, setLogo] = useState<string | null>(() => localStorage.getItem('tac_shop_logo'));
