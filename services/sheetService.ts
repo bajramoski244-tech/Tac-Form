@@ -41,8 +41,7 @@ function doPost(e) {
 // 8. Click "Deploy" and Copy the "Web app URL"
 // 9. Paste the URL into the variable below:
 
-export const GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbw.../exec";
+export const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw.../exec";
 
 
 
