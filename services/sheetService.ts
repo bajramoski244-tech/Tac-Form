@@ -10,7 +10,9 @@ const STORAGE_KEY = 'tac_leads_db';
 function doPost(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-    var data = JSON.parse(e.postData.contents);
+    var raw = (e.parameter && e.parameter.payload) ? e.parameter.payload : e.postData.contents;
+    var data = JSON.parse(raw);
+
     var timestamp = new Date().toLocaleString("mk-MK");
     
     sheet.appendRow([
@@ -41,9 +43,7 @@ function doPost(e) {
 // 8. Click "Deploy" and Copy the "Web app URL"
 // 9. Paste the URL into the variable below:
 
-export const GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbw4Sm169aP5HmxjQzzvFZvB8egNIu71TOX97YXd36QwEbTAeQAyn3gX1fgJFqgK_X9HFg/exec";
-
+export const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4Sm169aP5HmxjQzzvFZvB8egNIu71TOX97YXd36QwEbTAeQAyn3gX1fgJFqgK_X9HFg/exec";
 
 
 
@@ -63,7 +63,6 @@ export const saveLead = async (
   data: LeadFormData,
   notes: string
 ): Promise<SubmittedLead> => {
-
   const qualified = checkQualification(data.budget);
 
   const newLead: SubmittedLead = {
@@ -71,87 +70,118 @@ export const saveLead = async (
     id: crypto.randomUUID(),
     timestamp: new Date().toISOString(),
     qualified,
-    notes
+    notes,
   };
 
-try {
-  await fetch(GOOGLE_SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({
-      rooms: newLead.rooms,
-      goal: newLead.goal,
-      quality: newLead.quality,
-      budget: newLead.budget,
-      service: newLead.service,
-      urgency: newLead.urgency,
-      city: newLead.city,
-      name: newLead.name,
-      phone: newLead.phone,
-      qualified: newLead.qualified,
-      notes: newLead.notes || "",
-    }),
-  });
-} catch (err) {
-  console.error("Google Sheets send failed:", err);
-}
+  // ✅ Save locally (so you never lose leads even if network fails)
+  try {
+    const existingRaw = localStorage.getItem(STORAGE_KEY);
+    const existing: SubmittedLead[] = existingRaw ? JSON.parse(existingRaw) : [];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([newLead, ...existing]));
+  } catch {
+    // ignore localStorage errors
+  }
 
-  
+  // ✅ Send to Google Sheets (Apps Script)
+  if (GOOGLE_SCRIPT_URL) {
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          rooms: newLead.rooms,
+          goal: newLead.goal,
+          quality: newLead.quality,
+          budget: newLead.budget,
+          service: newLead.service,
+          urgency: newLead.urgency,
+          city: newLead.city,
+          name: newLead.name,
+          phone: newLead.phone,
+          qualified: newLead.qualified,
+          notes: newLead.notes || "",
+          timestamp: newLead.timestamp,
+          id: newLead.id,
+        }),
+      });
+    } catch (err) {
+      console.error("Google Sheets send failed:", err);
+    }
+  }
 
-  // ✅ VERY IMPORTANT
   return newLead;
 };
 
-
 export const getLeads = (): SubmittedLead[] => {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? (JSON.parse(data) as SubmittedLead[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+// Basic CSV escaping (handles commas, quotes, newlines)
+const csvEscape = (value: unknown) => {
+  const s = String(value ?? "");
+  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
 };
 
 export const generateCSV = (leads: SubmittedLead[]): string => {
   const headers = [
-    'Timestamp',
-    'Qualified',
-    'Name',
-    'Phone',
-    'City',
-    'Rooms',
-    'Goal',
-    'Quality',
-    'Budget/m2',
-    'Service',
-    'Urgency',
-    'Notes'
+    "Timestamp",
+    "Qualified",
+    "Name",
+    "Phone",
+    "City",
+    "Rooms",
+    "Goal",
+    "Quality",
+    "Budget/m2",
+    "Service",
+    "Urgency",
+    "Notes",
   ];
 
-  const rows = leads.map(lead => [
-    `"${new Date(lead.timestamp).toLocaleString('mk-MK')}"`,
-    lead.qualified ? 'YES' : 'NO',
-    `"${lead.name}"`,
-    `"${lead.phone}"`,
-    `"${lead.city}"`,
-    `"${lead.rooms.join(', ')}"`,
-    `"${lead.goal}"`,
-    `"${lead.quality}"`,
-    `"${lead.budget}"`,
-    `"${lead.service}"`,
-    `"${lead.urgency}"`,
-    `"${lead.notes}"`
+  const rows = leads.map((lead) => [
+    new Date(lead.timestamp).toLocaleString("mk-MK"),
+    lead.qualified ? "YES" : "NO",
+    lead.name,
+    lead.phone,
+    lead.city,
+    Array.isArray(lead.rooms) ? lead.rooms.join(", ") : "",
+    lead.goal,
+    lead.quality,
+    lead.budget,
+    lead.service,
+    lead.urgency,
+    lead.notes,
   ]);
 
-  return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  return [
+    headers.map(csvEscape).join(","),
+    ...rows.map((r) => r.map(csvEscape).join(",")),
+  ].join("\n");
 };
 
 export const downloadCSV = () => {
   const leads = getLeads();
   const csvContent = generateCSV(leads);
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', `tac_leads_${new Date().toISOString().slice(0,10)}.csv`);
+
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute(
+    "download",
+    `tac_leads_${new Date().toISOString().slice(0, 10)}.csv`
+  );
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
 };
