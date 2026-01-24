@@ -74,31 +74,30 @@ export const saveLead = async (
     notes
   };
 
-  if (GOOGLE_SCRIPT_URL) {
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-  // ✅ IMPORTANT: avoid CORS preflight
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        rooms: newLead.rooms, // array
-        goal: newLead.goal,
-        quality: newLead.quality,
-        budget: newLead.budget,
-        service: newLead.service,
-        urgency: newLead.urgency,
-        city: newLead.city,
-        name: newLead.name,
-        phone: newLead.phone,
-        qualified: newLead.qualified, // boolean
-        notes: newLead.notes || ""
-  }),
-});
-
-    } catch (err) {
-      console.error("Google Sheets send failed:", err);
-    }
-  }
+try {
+  await fetch("/api/lead", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      rooms: newLead.rooms,
+      goal: newLead.goal,
+      quality: newLead.quality,
+      budget: newLead.budget,
+      service: newLead.service,
+      urgency: newLead.urgency,
+      city: newLead.city,
+      name: newLead.name,
+      phone: newLead.phone,
+      qualified: newLead.qualified,
+      notes: newLead.notes || "",
+    }),
+  });
+} catch (err) {
+  console.error("Lead API failed:", err);
+}
+  
 
   // ✅ VERY IMPORTANT
   return newLead;
