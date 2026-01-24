@@ -75,11 +75,10 @@ export const saveLead = async (
   };
 
 try {
-  await fetch("/api/lead", {
+  await fetch(GOOGLE_SCRIPT_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({
       rooms: newLead.rooms,
       goal: newLead.goal,
@@ -95,8 +94,9 @@ try {
     }),
   });
 } catch (err) {
-  console.error("Lead API failed:", err);
+  console.error("Google Sheets send failed:", err);
 }
+
   
 
   // ✅ VERY IMPORTANT
