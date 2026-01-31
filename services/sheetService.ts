@@ -1,5 +1,8 @@
 import { LeadFormData, SubmittedLead, BudgetOption } from '../types';
 
+export const GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbxYK1K4FZdigknqwBoavIosslmDA-SbAJ84DAxpQE3D_ce0zdprnIGx1sHew8MU06X73A/exec";
+
 const STORAGE_KEY = 'tac_leads_db';
 
 // --- GOOGLE SHEETS INTEGRATION INSTRUCTIONS ---
@@ -85,26 +88,28 @@ export const saveLead = async (
   // ✅ Send to Google Sheets (Apps Script)
   if (GOOGLE_SCRIPT_URL) {
     try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          rooms: newLead.rooms,
-          goal: newLead.goal,
-          quality: newLead.quality,
-          budget: newLead.budget,
-          service: newLead.service,
-          urgency: newLead.urgency,
-          city: newLead.city,
-          name: newLead.name,
-          phone: newLead.phone,
-          qualified: newLead.qualified,
-          notes: newLead.notes || "",
-          timestamp: newLead.timestamp,
-          id: newLead.id,
-        }),
-      });
+     await fetch(GOOGLE_SCRIPT_URL, {
+  method: "POST",
+  mode: "no-cors",
+  headers: {
+    "Content-Type": "text/plain;charset=utf-8",
+  },
+  body: JSON.stringify({
+    rooms: newLead.rooms,
+    goal: newLead.goal,
+    quality: newLead.quality,
+    budget: newLead.budget,
+    service: newLead.service,
+    urgency: newLead.urgency,
+    city: newLead.city,
+    name: newLead.name,
+    phone: newLead.phone,
+    qualified: newLead.qualified,
+    notes: newLead.notes || "",
+  }),
+});
+
+
     } catch (err) {
       console.error("Google Sheets send failed:", err);
     }
